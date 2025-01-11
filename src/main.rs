@@ -200,7 +200,7 @@ fn lex(code: &str) -> Result<Vec<Token>, String> {
         i += 1;
     }
 
-      '*' => {
+     '*' => {
         tokens.push(Token::Multiply);
         i += 1;
     }
@@ -260,13 +260,31 @@ fn lex(code: &str) -> Result<Vec<Token>, String> {
           tokens.push(identifier);
     }
 
+    '=' => 
+    {
+        while i < bytes.len()
+        {
+            if bytes[i+1] as char == '='
+            {
+              tokens.push(Token::Equality);
+              i += 2;
+              break;
+            }
+            else
+            {
+              tokens.push(Token::Assign);
+              i += 1;
+              break;
+            }
+        }
+    }
+
     '<' => {
-        let start = i;
         while i < bytes.len() {
-           let letter = bytes[i] as char;
+           let letter = bytes[i+1] as char;
            if letter == '=' {
              tokens.push(Token::LessEqual);
-             i += 1;
+             i += 2;
            } 
            else {
             tokens.push(Token::Less);
@@ -281,10 +299,11 @@ fn lex(code: &str) -> Result<Vec<Token>, String> {
     '>' => {
         let start = i;
         while i < bytes.len() {
-           let letter = bytes[i] as char;
+           let letter = bytes[i+1] as char;
            if letter == '=' {
              tokens.push(Token::GreaterEqual);
-             i += 1;
+             i += 2;
+             break;
            } 
            else {
             tokens.push(Token::Greater);
@@ -294,27 +313,14 @@ fn lex(code: &str) -> Result<Vec<Token>, String> {
          }
     }
 
-    '=' => {
-        let letter = bytes[i] as char;
-        if letter == '=' {
-            tokens.push(Token::Assign);
-            i += 1;
-        } 
-        else {
-            tokens.push(Token::Equality);
-            i += 1;
-            break;
-        }
-         
-    }
 
     '!' => {
         let start = i;
         while i < bytes.len() {
-           let letter = bytes[i] as char;
+           let letter = bytes[i+1] as char;
            if letter == '=' {
              tokens.push(Token::NotEqual);
-             i += 1;
+             i += 2;
            } 
            else {
              break;
