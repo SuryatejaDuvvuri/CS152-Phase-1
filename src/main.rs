@@ -11,7 +11,7 @@
 use std::env;
 // used to interact with the file system
 use std::fs;
-
+  
 fn main() {
 
     // Let us get commandline arguments and store them in a Vec<String>
@@ -138,207 +138,210 @@ fn lex(code: &str) -> Result<Vec<Token>, String> {
 
     match c {
 
-
-    '0'..='9' => {
-      let start = i;
-      i += 1;
-      while i < bytes.len() {
-        let digit = bytes[i] as char;
-        if digit >= '0' && digit <= '9' {
-          i += 1;
-        } 
-        else {
-          break;
+      '0'..='9' => {
+        let start = i;
+        i += 1;
+        while i < bytes.len() {
+          let digit = bytes[i] as char;
+          if digit >= '0' && digit <= '9' {
+            i += 1;
+          } 
+          else if (digit >= 'a' && digit <= 'z' ) || (digit >= 'A' && digit <= 'Z')
+          {
+              return Err(format!("Invalid number '{}'", digit));
+          }
+          else {
+            break;
+          }
         }
+        let end = i;
+        let string_token = &code[start..end];
+        let number_value = string_token.parse::<i32>().unwrap();
+        let token = Token::Num(number_value);
+
+        tokens.push(token);
       }
-      let end = i;
-      let string_token = &code[start..end];
-      let number_value = string_token.parse::<i32>().unwrap();
-      let token = Token::Num(number_value);
-
-      tokens.push(token);
-    }
 
 
-    '(' => {
-        tokens.push(Token::LeftParen); 
-        i += 1;
-    }
-    ')' => {
-        tokens.push(Token::RightParen);
-        i += 1;
-    }
+      '(' => {
+          tokens.push(Token::LeftParen); 
+          i += 1;
+      }
+      ')' => {
+          tokens.push(Token::RightParen);
+          i += 1;
+      }
 
-    '[' => {
-        tokens.push(Token::LeftBracket); 
-        i += 1;
-    }
-    ']' => {
-        tokens.push(Token::RightBracket);
-        i += 1;
-    }
-    '{' => {
-        tokens.push(Token::LeftCurly);
-        i += 1;
-    }
-    '}' => {
-        tokens.push(Token::RightCurly);
-        i += 1;
-    }
-    ';' => {
-        tokens.push(Token::Semicolon);
-        i += 1;
-    }
+      '[' => {
+          tokens.push(Token::LeftBracket); 
+          i += 1;
+      }
+      ']' => {
+          tokens.push(Token::RightBracket);
+          i += 1;
+      }
+      '{' => {
+          tokens.push(Token::LeftCurly);
+          i += 1;
+      }
+      '}' => {
+          tokens.push(Token::RightCurly);
+          i += 1;
+      }
+      ';' => {
+          tokens.push(Token::Semicolon);
+          i += 1;
+      }
 
-    '+' => {
-      tokens.push(Token::Plus);
-      i += 1;
-    }
-
-    '-' => {
-        tokens.push(Token::Subtract);
+      '+' => {
+        tokens.push(Token::Plus);
         i += 1;
-    }
+      }
 
-     '*' => {
-        tokens.push(Token::Multiply);
-        i += 1;
-    }
+      '-' => {
+          tokens.push(Token::Subtract);
+          i += 1;
+      }
+
+      '*' => {
+          tokens.push(Token::Multiply);
+          i += 1;
+      }
 
       '/' => {
-        tokens.push(Token::Divide);
-        i += 1;
-    }
+          tokens.push(Token::Divide);
+          i += 1;
+      }
 
-      '%' => {
-        tokens.push(Token::Modulus);
-        i += 1;
-    }
+        '%' => {
+          tokens.push(Token::Modulus);
+          i += 1;
+      }
 
-    ',' => {
-        tokens.push(Token::Comma);
-        i += 1;
-    }
+      ',' => {
+          tokens.push(Token::Comma);
+          i += 1;
+      }
 
-    '#' => {
-        let start = i;
-       
-        while i < bytes.len() 
-        {
-            let values = bytes[i] as char;
-            if values == '\n'
-            {
+      '#' => {
+          let start = i;
+        
+          while i < bytes.len() 
+          {
+              let values = bytes[i] as char;
+              if values == '\n'
+              {
+                  break;
+              }
+              else
+              {
+                  i += 1;
+              }
+          }
+      }
+
+      'a'..='z' | 'A'..='Z' => 
+      {
+          let start = i;
+          while i < bytes.len() {
+              let letter = bytes[i] as char;
+              if letter >= 'A' && letter <= 'Z' {
+                i += 1;
+              } 
+              else if letter >= 'a' && letter <= 'z'
+              {
+                  i += 1;
+              }
+              else {
                 break;
+              }
             }
-            else
-            {
-                i += 1;
-            }
-        }
-    }
+            let end = i;
+            let string_token = &code[start..end];
+            let identifier = create_identifier(string_token);
+      
+            tokens.push(identifier);
+      }
 
-    'a'..='z' | 'A'..='Z' => 
-    {
-         let start = i;
-         while i < bytes.len() {
-            let letter = bytes[i] as char;
-            if letter >= 'A' && letter <= 'Z' {
-              i += 1;
-            } 
-            else if letter >= 'a' && letter <= 'z'
-            {
+      '=' => 
+      {
+          while i < bytes.len()
+          {
+              if bytes[i+1] as char == '='
+              {
+                tokens.push(Token::Equality);
+                i += 2;
+                break;
+              }
+              else
+              {
+                tokens.push(Token::Assign);
                 i += 1;
+                break;
+              }
+          }
+      }
+
+      '<' => {
+          while i < bytes.len() {
+            let letter = bytes[i+1] as char;
+            if letter == '=' {
+              tokens.push(Token::LessEqual);
+              i += 2;
+            } 
+            else {
+              tokens.push(Token::Less);
+              i += 1;
+              break;
             }
+          }
+      }
+
+      //TBD
+
+      '>' => {
+          let start = i;
+          while i < bytes.len() {
+            let letter = bytes[i+1] as char;
+            if letter == '=' {
+              tokens.push(Token::GreaterEqual);
+              i += 2;
+              break;
+            } 
+            else {
+              tokens.push(Token::Greater);
+              i += 1;
+              break;
+            }
+          }
+      }
+
+
+      '!' => {
+          let start = i;
+          while i < bytes.len() {
+            let letter = bytes[i+1] as char;
+            if letter == '=' {
+              tokens.push(Token::NotEqual);
+              i += 2;
+            } 
             else {
               break;
             }
           }
-          let end = i;
-          let string_token = &code[start..end];
-          let identifier = create_identifier(string_token);
-    
-          tokens.push(identifier);
-    }
+      }
 
-    '=' => 
-    {
-        while i < bytes.len()
-        {
-            if bytes[i+1] as char == '='
-            {
-              tokens.push(Token::Equality);
-              i += 2;
-              break;
-            }
-            else
-            {
-              tokens.push(Token::Assign);
-              i += 1;
-              break;
-            }
-        }
-    }
-
-    '<' => {
-        while i < bytes.len() {
-           let letter = bytes[i+1] as char;
-           if letter == '=' {
-             tokens.push(Token::LessEqual);
-             i += 2;
-           } 
-           else {
-            tokens.push(Token::Less);
-            i += 1;
-            break;
-           }
-         }
-    }
-
-    //TBD
-
-    '>' => {
-        let start = i;
-        while i < bytes.len() {
-           let letter = bytes[i+1] as char;
-           if letter == '=' {
-             tokens.push(Token::GreaterEqual);
-             i += 2;
-             break;
-           } 
-           else {
-            tokens.push(Token::Greater);
-            i += 1;
-             break;
-           }
-         }
-    }
-
-
-    '!' => {
-        let start = i;
-        while i < bytes.len() {
-           let letter = bytes[i+1] as char;
-           if letter == '=' {
-             tokens.push(Token::NotEqual);
-             i += 2;
-           } 
-           else {
-             break;
-           }
-         }
-    }
-
-    
+      
 
 
 
-    ' ' | '\n' => {
-      i += 1;
-    }
+      ' ' | '\n' => {
+        i += 1;
+      }
 
-    _ => {
-      return Err(format!("Unrecognized symbol '{}'", c));
-    }
+      _ => {
+        return Err(format!("Unrecognized symbol '{}'", c));
+      }
 
     }
   }

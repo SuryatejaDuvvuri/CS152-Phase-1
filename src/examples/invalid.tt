@@ -1,0 +1,4 @@
+int a = 5;
+int b = 6;
+int 2a = a + b;
+int 2apples = a + b;
