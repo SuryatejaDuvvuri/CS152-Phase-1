@@ -248,7 +248,7 @@ fn lex(code: &str) -> Result<Vec<Token>, String> {
               if letter >= 'A' && letter <= 'Z' {
                 i += 1;
               } 
-              else if letter >= 'a' && letter <= 'z'
+              else if letter >= 'a' && letter <= 'z' || letter >= '0' && letter <= '9'
               {
                   i += 1;
               }
